@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  gandi-dns-updater:
+    image: gandi-dns-updater:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gandi-dns-updater
+    env_file:
+    - config.env
+    restart: always
