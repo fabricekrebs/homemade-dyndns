@@ -54,7 +54,8 @@ def updateDnsRecord(domain, recordName, ip):
         "items": [
             {
                 "rrset_type": "A",
-                "rrset_values": [ip]
+                "rrset_values": [ip],
+                "rrset_ttl": 300
             }
         ]
     }
@@ -82,7 +83,7 @@ def main():
             return
 
     # Update the DNS record
-    print(f"[{getCurrentTime()}] Updating DNS record...")
+    print(f"[{getCurrentTime()}] The record does not match. Updating DNS record...")
     updateDnsRecord(domain, recordName, ip)
 
 if __name__ == "__main__":
