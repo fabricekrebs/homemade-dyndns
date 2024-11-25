@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 import os
 import requests
+from datetime import datetime
 
 # Definition of the global variables
 load_dotenv('config.env')
@@ -14,14 +15,19 @@ recordName = os.getenv('RECORDNAME')
 # Gandi API Base URL
 gandiApiBase = "https://api.gandi.net/v5/livedns/domains"
 
+def getCurrentTime():
+    """Return the current date and time as a string."""
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
 def getPublicIp():
     """Fetch the current public IP address."""
     try:
         response = requests.get("https://api.ipify.org?format=json")
         response.raise_for_status()
+        print(f"[{getCurrentTime()}] Successfully fetched public IP: {response.json()['ip']}")
         return response.json()["ip"]
     except requests.RequestException as e:
-        print(f"Error fetching public IP: {e}")
+        print(f"[{getCurrentTime()}] Error fetching public IP: {e}")
         return None
 
 def getDnsRecord(domain, recordName):
@@ -31,9 +37,10 @@ def getDnsRecord(domain, recordName):
     try:
         response = requests.get(url, headers=headers)
         response.raise_for_status()
+        print(f"[{getCurrentTime()}] Successfully fetched DNS record for {recordName}.{domain}")
         return response.json()
     except requests.RequestException as e:
-        print(f"Error fetching DNS record: {e}")
+        print(f"[{getCurrentTime()}] Error fetching DNS record: {e}")
         return None
 
 def updateDnsRecord(domain, recordName, ip):
@@ -54,28 +61,28 @@ def updateDnsRecord(domain, recordName, ip):
     try:
         response = requests.put(url, headers=headers, json=payload)
         response.raise_for_status()
-        print(f"DNS record updated successfully: {response.json()}")
+        print(f"[{getCurrentTime()}] DNS record for {recordName}.{domain} updated successfully.")
     except requests.RequestException as e:
-        print(f"Error updating DNS record: {e}")
+        print(f"[{getCurrentTime()}] Error updating DNS record: {e}")
 
 def main():
     ip = getPublicIp()
     if not ip:
-        print("Could not determine public IP. Exiting.")
+        print(f"[{getCurrentTime()}] Could not determine public IP. Exiting.")
         return
 
-    print(f"Current public IP: {ip}")
+    print(f"[{getCurrentTime()}] Current public IP: {ip}")
 
     # Check current DNS record
     record = getDnsRecord(domain, recordName)
     if record:
         currentIps = [item["rrset_values"] for item in record if item["rrset_name"] == recordName and item["rrset_type"] == "A"]
         if currentIps and ip in currentIps[0]:
-            print("DNS record is already up to date. No action needed.")
+            print(f"[{getCurrentTime()}] DNS record is already up to date. No action needed.")
             return
 
     # Update the DNS record
-    print("Updating DNS record...")
+    print(f"[{getCurrentTime()}] Updating DNS record...")
     updateDnsRecord(domain, recordName, ip)
 
 if __name__ == "__main__":
